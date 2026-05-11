@@ -1,6 +1,26 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FileText, 
+  Upload, 
+  Trash2, 
+  User, 
+  Stethoscope, 
+  Clock, 
+  Binary, 
+  Plus, 
+  Image as ImageIcon,
+  ChevronRight,
+  Play
+} from 'lucide-react';
 import { AppMode, PatientMetadata } from '../types';
 import { SCAN_TYPES } from '../constants';
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
 
 interface InputPanelProps {
   mode: AppMode;
@@ -52,198 +72,276 @@ const InputPanel: React.FC<InputPanelProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-r border-slate-200 shadow-sm overflow-hidden">
-      <div className="p-6 border-b border-slate-100 space-y-4">
-        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-          <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-          Input Data
-        </h2>
+    <div className="flex flex-col h-full bg-white border-r border-slate-200 shadow-xl relative z-10 overflow-hidden">
+      <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <FileText className="w-5 h-5 text-indigo-600" />
+            Analysis Setup
+          </h2>
+          <div className="flex items-center gap-1.5 px-2 py-1 bg-indigo-50 rounded-md">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+            <span className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Patient Case</span>
+          </div>
+        </div>
 
         {/* Mode Toggle */}
-        <div className="flex p-1 bg-slate-100 rounded-lg">
+        <div className="flex p-1 bg-slate-200/50 rounded-xl border border-slate-200">
           <button
             onClick={() => setMode(AppMode.SINGLE)}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === AppMode.SINGLE ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={cn(
+              "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2",
+              mode === AppMode.SINGLE 
+                ? 'bg-white text-indigo-600 shadow-md ring-1 ring-slate-200' 
+                : 'text-slate-500 hover:text-slate-700'
+            )}
           >
+            <ImageIcon size={14} />
             Single Scan
           </button>
           <button
             onClick={() => setMode(AppMode.COMPARE)}
-            className={`flex-1 py-2 text-sm font-medium rounded-md transition-all ${mode === AppMode.COMPARE ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            className={cn(
+              "flex-1 py-2 text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2",
+              mode === AppMode.COMPARE 
+                ? 'bg-white text-indigo-600 shadow-md ring-1 ring-slate-200' 
+                : 'text-slate-500 hover:text-slate-700'
+            )}
           >
-            Compare (Prior + New)
+            <Binary size={14} />
+            Compare Scans
           </button>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+      <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
         
         {/* Upload Section */}
-        <div className="space-y-4">
-          {mode === AppMode.COMPARE && (
-            <div className="space-y-2">
-              <label className="block text-sm font-semibold text-slate-700">Prior / Baseline Scans</label>
-              <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 text-center hover:bg-slate-50 transition-colors relative">
-                <input 
-                  type="file" 
-                  multiple 
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, true)} 
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                />
-                <div className="text-slate-500 text-sm">
-                  Click to upload priors
-                </div>
-              </div>
-              {priorFiles.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-2">
-                  {priorFiles.map((f, i) => (
-                    <div key={i} className="relative group w-16 h-16 rounded overflow-hidden border border-slate-200">
-                      <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="preview" />
-                      <button 
-                        onClick={() => removeFile(i, true)}
-                        className="absolute top-0 right-0 bg-red-500 text-white p-0.5 rounded-bl opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        ×
-                      </button>
+        <div className="space-y-6">
+          <AnimatePresence mode="popLayout">
+            {mode === AppMode.COMPARE && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="space-y-3"
+              >
+                <label className="label-text flex items-center gap-2">
+                  <Clock size={12} />
+                  Prior / Baseline Scans
+                </label>
+                <div className="group relative border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-indigo-400 hover:bg-indigo-50/30 transition-all cursor-pointer overflow-hidden">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, true)} 
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  />
+                  <div className="relative z-0 space-y-2">
+                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center mx-auto group-hover:bg-indigo-100 transition-colors">
+                      <Plus className="w-5 h-5 text-slate-400 group-hover:text-indigo-600" />
                     </div>
-                  ))}
+                    <div className="text-xs font-medium text-slate-500 group-hover:text-slate-700">
+                      Add prior studies for comparison
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-          )}
+                {priorFiles.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mt-3">
+                    {priorFiles.map((f, i) => (
+                      <motion.div 
+                        layout
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        key={`prior-${i}`} 
+                        className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 shadow-sm"
+                      >
+                        <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="preview" />
+                        <button 
+                          onClick={() => removeFile(i, true)}
+                          className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          <div className="space-y-2">
-            <label className="block text-sm font-semibold text-slate-700">
+          <div className="space-y-3">
+            <label className="label-text flex items-center gap-2">
+              <Upload size={12} />
               {mode === AppMode.COMPARE ? 'Current Scans' : 'Radiology Images'}
             </label>
-            <div className="border-2 border-dashed border-slate-300 rounded-lg p-6 text-center hover:bg-slate-50 transition-colors relative">
+            <div className="group relative border-2 border-dashed border-indigo-200 rounded-xl p-8 text-center hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer overflow-hidden bg-indigo-50/20">
               <input 
                 type="file" 
                 multiple 
                 accept="image/*"
                 onChange={(e) => handleFileChange(e, false)} 
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
               />
-              <div className="space-y-1">
-                <svg className="mx-auto h-8 w-8 text-slate-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <div className="text-sm text-slate-600">
-                  <span className="font-medium text-indigo-600">Upload images</span> or drag and drop
+              <div className="relative z-0 space-y-3">
+                <div className="w-12 h-12 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto group-hover:scale-110 transition-transform shadow-sm">
+                  <Upload className="w-6 h-6 text-indigo-600" />
                 </div>
-                <p className="text-xs text-slate-500">X-Ray, CT, MRI, Ultrasound</p>
+                <div>
+                  <div className="text-sm font-bold text-slate-700">
+                    Drop images here
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1 font-medium">X-Ray, CT, MRI, Ultrasound supported</p>
+                </div>
               </div>
             </div>
             {files.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="grid grid-cols-4 gap-2 mt-3">
                 {files.map((f, i) => (
-                  <div key={i} className="relative group w-20 h-20 rounded overflow-hidden border border-slate-200 shadow-sm">
+                  <motion.div 
+                    layout
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    key={`current-${i}`} 
+                    className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 shadow-md ring-1 ring-black/5"
+                  >
                     <img src={URL.createObjectURL(f)} className="w-full h-full object-cover" alt="preview" />
                     <button 
                       onClick={() => removeFile(i, false)}
-                      className="absolute top-0 right-0 bg-red-500 text-white w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      ×
+                      <Trash2 size={18} />
                     </button>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
           </div>
         </div>
 
-        <hr className="border-slate-100" />
+        <div className="h-px bg-slate-100 mx-2" />
 
         {/* Patient Data Form */}
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wider">Patient Metadata</h3>
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <User className="w-4 h-4 text-slate-400" />
+            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Clinical Context</h3>
+          </div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-slate-500 mb-1">Scan Type</label>
-              <select 
-                value={metadata.scanType}
-                onChange={(e) => updateMetadata('scanType', e.target.value)}
-                className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
-              >
-                {SCAN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
+            <div className="space-y-1.5">
+              <label className="label-text">Scan Type</label>
+              <div className="relative">
+                <select 
+                  value={metadata.scanType}
+                  onChange={(e) => updateMetadata('scanType', e.target.value)}
+                  className="input-field appearance-none pr-8 bg-slate-50/50"
+                >
+                  {SCAN_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+                <ChevronRight className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 rotate-90 pointer-events-none" />
+              </div>
             </div>
-            <div>
-               <label className="block text-xs font-medium text-slate-500 mb-1">Sex</label>
-               <select 
-                 value={metadata.sex}
-                 onChange={(e) => updateMetadata('sex', e.target.value)}
-                 className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
-               >
-                 <option value="">Select...</option>
-                 <option value="Male">Male</option>
-                 <option value="Female">Female</option>
-               </select>
+            <div className="space-y-1.5">
+               <label className="label-text">Patient Sex</label>
+               <div className="relative">
+                 <select 
+                   value={metadata.sex}
+                   onChange={(e) => updateMetadata('sex', e.target.value)}
+                   className="input-field appearance-none pr-8 bg-slate-50/50"
+                 >
+                   <option value="">Select...</option>
+                   <option value="Male">Male</option>
+                   <option value="Female">Female</option>
+                 </select>
+                 <ChevronRight className="absolute right-2.5 top-2.5 w-4 h-4 text-slate-400 rotate-90 pointer-events-none" />
+               </div>
             </div>
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-             <div>
-               <label className="block text-xs font-medium text-slate-500 mb-1">Age</label>
+             <div className="space-y-1.5">
+               <label className="label-text">Age</label>
                <input 
                 type="text" 
                 value={metadata.age}
                 onChange={(e) => updateMetadata('age', e.target.value)}
-                placeholder="e.g. 45"
-                className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
+                placeholder="Years"
+                className="input-field bg-slate-50/50"
                />
              </div>
-             <div>
-               <label className="block text-xs font-medium text-slate-500 mb-1">Duration</label>
+             <div className="space-y-1.5">
+               <label className="label-text">Duration</label>
                <input 
                 type="text" 
                 value={metadata.duration}
                 onChange={(e) => updateMetadata('duration', e.target.value)}
-                placeholder="e.g. 3 days"
-                className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
+                placeholder="e.g. 48h"
+                className="input-field bg-slate-50/50"
                />
              </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Symptoms / Chief Complaint</label>
+          <div className="space-y-1.5">
+            <label className="label-text flex items-center gap-2">
+              <Stethoscope size={12} />
+              Symptoms / Chief Complaint
+            </label>
             <textarea 
               rows={3}
               value={metadata.symptoms}
               onChange={(e) => updateMetadata('symptoms', e.target.value)}
-              placeholder="e.g. Sharp chest pain, worse with inspiration..."
-              className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
+              placeholder="Describe primary symptoms..."
+              className="input-field bg-slate-50/50 resize-none"
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Brief History</label>
+          <div className="space-y-1.5">
+            <label className="label-text flex items-center gap-2">
+              <FileText size={12} />
+              Relevant Medical History
+            </label>
             <textarea 
               rows={2}
               value={metadata.history}
               onChange={(e) => updateMetadata('history', e.target.value)}
-              placeholder="e.g. Smoker, HTN, previous pneumonia..."
-              className="w-full rounded-md border-slate-300 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500 py-2 px-3 border"
+              placeholder="Past conditions, surgeries, etc..."
+              className="input-field bg-slate-50/50 resize-none"
             />
           </div>
 
         </div>
       </div>
 
-      <div className="p-6 border-t border-slate-200 bg-slate-50">
+      <div className="p-6 bg-slate-50 border-t border-slate-200 shadow-[0_-4px_20px_-10px_rgba(0,0,0,0.1)]">
         <button
           onClick={onAnalyze}
           disabled={isAnalyzing || files.length === 0}
-          className={`w-full py-3 px-4 rounded-lg font-semibold text-white shadow-md transition-all 
-            ${isAnalyzing || files.length === 0 
+          className={cn(
+            "w-full py-4 px-6 rounded-xl font-bold text-sm text-white shadow-lg transition-all flex items-center justify-center gap-3 relative overflow-hidden group",
+            isAnalyzing || files.length === 0 
               ? 'bg-slate-400 cursor-not-allowed' 
-              : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-lg active:transform active:scale-95'
-            }`}
+              : 'bg-indigo-600 hover:bg-indigo-700 hover:shadow-indigo-200 active:scale-[0.98]'
+          )}
         >
-          {isAnalyzing ? 'Analyzing...' : 'Run Copilot Analysis'}
+          {isAnalyzing ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <span>Processing Case...</span>
+            </>
+          ) : (
+            <>
+              <Play size={18} className="fill-current" />
+              <span>Run AI Clinical Analysis</span>
+              <div className="absolute inset-0 bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-[-20deg]" />
+            </>
+          )}
         </button>
+        <p className="text-[10px] text-center text-slate-400 mt-4 font-medium">
+          Analysis typically takes 10-20 seconds
+        </p>
       </div>
     </div>
   );
