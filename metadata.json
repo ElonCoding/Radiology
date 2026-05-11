@@ -1,0 +1,5 @@
+{
+  "name": "Radiology Copilot",
+  "description": "A clinical decision-support tool powered by Gemini 3 Pro. Compares scans, extracts findings, and provides differential diagnoses with safety guardrails.",
+  "requestFramePermissions": []
+}
